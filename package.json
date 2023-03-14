@@ -1,15 +1,28 @@
 {
   "name": "openapi-scheme-parser",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Parser for openapi config files in JSON format to convert the components to development ready interfaces",
+  "bin": {
+    "openapi-scheme-parser": "bin/index.js"
   },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "test": "npm run build && ./bin/index.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "dist"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "module",
   "dependencies": {
-    "@types/node": "^18.15.3"
+    "@types/node": "^18.15.3",
+    "yargs-parser": "^21.1.1"
   }
 }

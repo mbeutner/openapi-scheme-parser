@@ -15,26 +15,6 @@ export async function generateSchema(params) {
         resolve('extraction of component schemes was successful');
     });
 }
-export function validateInputParams(args) {
-    let filePath;
-    let outputPath;
-    if ('f' in args) {
-        filePath = args['filePath'];
-    }
-    if ('o' in args) {
-        outputPath = args['output'];
-    }
-    if (!filePath || !outputPath) {
-        if (filePath) {
-            throw new CustomError('Filename is missing');
-        }
-        if (outputPath) {
-            throw new CustomError('Output name is missing');
-        }
-        throw new CustomError('Filename and output name are missing');
-    }
-    return { filePath, outputPath };
-}
 function extractSchemaFromFile(filePath) {
     return new Promise((resolve, reject) => {
         readFile(filePath, (err, data) => {
@@ -74,7 +54,7 @@ function addDescription(property) {
         return `  /** Example ${property.example} **/\n`;
     }
     if (property.description && property.example) {
-        return `  /**\n    * ${property.description}\n    * Example: ${property.example}\n  **/\n`;
+        return `  /**\n   * ${property.description}\n   * @example ${property.example}\n   */\n`;
     }
     return '';
 }
