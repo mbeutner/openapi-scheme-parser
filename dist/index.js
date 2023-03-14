@@ -1,18 +1,17 @@
 #!/usr/bin/env node
 import { readFile, writeFile } from 'fs';
-class CustomError extends Error {
-    message;
-    constructor(message) {
-        super();
-        this.message = message;
-    }
-}
 export async function generateSchema(params) {
-    return new Promise(async (resolve) => {
-        const openApiConf = await extractSchemaFromFile(params.filePath);
-        const fileContent = createInterfaceString(openApiConf);
-        createFileOutput(params.outputPath, fileContent);
-        resolve('extraction of component schemes was successful');
+    return new Promise(async (resolve, reject) => {
+        let openApiConf;
+        try {
+            openApiConf = await extractSchemaFromFile(params.filePath);
+            const fileContent = createInterfaceString(openApiConf.schemas);
+            createFileOutput(params.outputPath, fileContent);
+            resolve('extraction of component schemes was successful');
+        }
+        catch (err) {
+            reject(`Error occurred while reading file: ${err}`);
+        }
     });
 }
 function extractSchemaFromFile(filePath) {
@@ -21,18 +20,31 @@ function extractSchemaFromFile(filePath) {
             if (err) {
                 reject(err);
             }
-            const dec = new TextDecoder();
-            const schema = JSON.parse(dec.decode(data))?.components?.schemas;
-            resolve(schema);
+            let schema;
+            try {
+                const dec = new TextDecoder();
+                schema = JSON.parse(dec.decode(data))?.components;
+                resolve(schema);
+            }
+            catch (err) {
+                reject(`Error occurred while parsing the json: ${err}`);
+            }
         });
     });
 }
 function createInterfaceString(openApiConf) {
     let result = '';
-    for (const key in openApiConf) {
+    if (!openApiConf) {
+        console.info('hier läuft was schief');
+        return result;
+    }
+    let key;
+    for (key in openApiConf) {
+        console.log(`SchemaKey => ${key}`);
         result += `export interface ${key} {\n`;
         const item = openApiConf[key];
         for (const propertyName in item.properties) {
+            console.log(`PropertyName => ${propertyName}`);
             const property = item.properties[propertyName];
             result += addDescription(property);
             if (item.required?.includes(propertyName)) {
@@ -59,21 +71,43 @@ function addDescription(property) {
     return '';
 }
 function mapPropertyTypes(property) {
+    let result = '';
+    if (!('type' in property)) {
+        console.log({ property });
+        return result;
+    }
     switch (property.type) {
         case 'integer':
-            return 'number';
+            result += 'number';
+            break;
         case 'array':
-            if (property.items?.type !== undefined) {
-                return `${mapPropertyTypes(property.items)}[]`;
+            if ('items' in property) {
+                if ('type' in property.items) {
+                    result += `${mapPropertyTypes(property.items)}[]`;
+                    break;
+                }
+                if ('$ref' in property.items) {
+                    const parts = property.items?.$ref.split('/');
+                    result += `${parts[parts.length - 1]}[]`;
+                    break;
+                }
             }
-            if (property.items?.$ref) {
-                const parts = property.items?.$ref.split('/');
-                return `${parts[parts.length - 1]}[]`;
+            if ('type' in property) {
+                result += property.type;
+                break;
             }
-            return property.type;
+            break;
         default:
-            return property.type;
+            if ('$ref' in property) {
+                break;
+            }
+            result += property.type;
+            break;
     }
+    if ('nullable' in property) {
+        result += ' | null';
+    }
+    return result;
 }
 function createFileOutput(outputPath, content) {
     writeFile(outputPath, content, (err) => {

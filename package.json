@@ -17,12 +17,20 @@
     "bin",
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mbeutner/openapi-scheme-parser"
+  },
+  "bugs": {
+    "url": "https://github.com/mbeutner/openapi-scheme-parser/issues"
+  },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@types/node": "^18.15.3",
+    "openapi-types": "^12.1.0",
     "yargs-parser": "^21.1.1"
   }
 }
