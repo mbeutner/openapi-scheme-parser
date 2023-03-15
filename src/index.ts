@@ -90,7 +90,7 @@ function mapPropertyTypes(property: SchemaObject | ReferenceObject): string {
       result += 'number'
       break
     case 'array':
-      if ('items' in property) {
+      if (property.items) {
         if ('type' in property.items) {
           result += `${mapPropertyTypes(property.items)}[]`
           break
@@ -101,7 +101,7 @@ function mapPropertyTypes(property: SchemaObject | ReferenceObject): string {
           break
         }
       }
-      if ('type' in property) {
+      if (property.type) {
         result += property.type
         break
       }
@@ -114,7 +114,7 @@ function mapPropertyTypes(property: SchemaObject | ReferenceObject): string {
       break
   }
 
-  if ('nullable' in property) {
+  if (property.nullable) {
     result += ' | null'
   }
   return result

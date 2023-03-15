@@ -35,16 +35,13 @@ function extractSchemaFromFile(filePath) {
 function createInterfaceString(openApiConf) {
     let result = '';
     if (!openApiConf) {
-        console.info('hier läuft was schief');
         return result;
     }
     let key;
     for (key in openApiConf) {
-        console.log(`SchemaKey => ${key}`);
         result += `export interface ${key} {\n`;
         const item = openApiConf[key];
         for (const propertyName in item.properties) {
-            console.log(`PropertyName => ${propertyName}`);
             const property = item.properties[propertyName];
             result += addDescription(property);
             if (item.required?.includes(propertyName)) {
@@ -73,7 +70,6 @@ function addDescription(property) {
 function mapPropertyTypes(property) {
     let result = '';
     if (!('type' in property)) {
-        console.log({ property });
         return result;
     }
     switch (property.type) {
@@ -81,7 +77,7 @@ function mapPropertyTypes(property) {
             result += 'number';
             break;
         case 'array':
-            if ('items' in property) {
+            if (property.items) {
                 if ('type' in property.items) {
                     result += `${mapPropertyTypes(property.items)}[]`;
                     break;
@@ -92,7 +88,7 @@ function mapPropertyTypes(property) {
                     break;
                 }
             }
-            if ('type' in property) {
+            if (property.type) {
                 result += property.type;
                 break;
             }
@@ -104,7 +100,8 @@ function mapPropertyTypes(property) {
             result += property.type;
             break;
     }
-    if ('nullable' in property) {
+    if (property.nullable) {
+        console.info({ property });
         result += ' | null';
     }
     return result;
@@ -112,7 +109,7 @@ function mapPropertyTypes(property) {
 function createFileOutput(outputPath, content) {
     writeFile(outputPath, content, (err) => {
         if (err) {
-            console.log(err);
+            console.info(err);
         }
     });
 }
